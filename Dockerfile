@@ -1,20 +1,16 @@
-FROM ubuntu:12.04
+FROM golang:1.11beta2-alpine3.8
 
-# Install dependencies
-RUN apt-get update -y
-RUN apt-get install -y git curl apache2 php5 libapache2-mod-php5 php5-mcrypt php5-mysql
+COPY app.go /gobuild/app.go
+COPY go.mod /gobuild/go.mod
+COPY go.sum /gobuild/go.sum
 
-# Install app
-RUN rm -rf /var/www/*
-ADD src /var/www
+RUN apk add --no-cache git
 
-# Configure apache
-RUN a2enmod rewrite
-RUN chown -R www-data:www-data /var/www
-ENV APACHE_RUN_USER www-data
-ENV APACHE_RUN_GROUP www-data
-ENV APACHE_LOG_DIR /var/log/apache2
+RUN cd /gobuild && CGO_ENABLED=0 GOOS=linux go build -o /app app.go
+#RUN CGO_ENABLED=0 GOOS=linux go build -o /app /gobuild/app.go
 
+FROM scratch
+COPY --from=0 /app /app
 EXPOSE 80
+CMD ["/app"]
 
-CMD ["/usr/sbin/apache2", "-D",  "FOREGROUND"]
