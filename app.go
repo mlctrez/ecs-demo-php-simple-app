@@ -38,7 +38,7 @@ func main() {
 
 		mysql.RegisterTLSConfig("custom", &tls.Config{RootCAs: rootCAs})
 
-		con := fmt.Sprintf("%s:%s@%s:3306/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
+		con := fmt.Sprintf("%s:%s@%s/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
 
 		db, err := sql.Open("mysql", con)
 		if err != nil {
@@ -50,6 +50,7 @@ func main() {
 			panic(err)
 		}
 
+		// http://go-database-sql.org/retrieving.html
 		rows, err := db.Query("select User from users")
 		if err != nil {
 			panic(err)
