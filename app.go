@@ -1,16 +1,12 @@
 package main
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocraft/web"
 )
@@ -30,24 +26,24 @@ func main() {
 
 		w.Header().Set("Content-Type", "text/plain")
 
-		rootCAs := x509.NewCertPool()
+		//rootCAs := x509.NewCertPool()
+		//
+		//pem, err := ioutil.ReadFile("/rds-combined-ca-bundle.pem")
+		//if err != nil {
+		//	panic(err)
+		//}
+		//if ok := rootCAs.AppendCertsFromPEM(pem); !ok {
+		//	panic(err)
+		//}
+		//
+		//mysqlHost := os.Getenv("MYSQL_HOST")
+		//mysql.RegisterTLSConfig("custom", &tls.Config{
+		//	RootCAs:    rootCAs,
+		//	ServerName: mysqlHost,
+		//})
+		//con := fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), mysqlHost)
 
-		pem, err := ioutil.ReadFile("/rds-combined-ca-bundle.pem")
-		if err != nil {
-			panic(err)
-		}
-		if ok := rootCAs.AppendCertsFromPEM(pem); !ok {
-			panic(err)
-		}
-
-		mysqlHost := os.Getenv("MYSQL_HOST")
-		mysql.RegisterTLSConfig("custom", &tls.Config{
-			RootCAs:    rootCAs,
-			ServerName: mysqlHost,
-		})
-		con := fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), mysqlHost)
-
-		//con := fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
+		con := fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
 
 		db, err := sql.Open("mysql", con)
 		if err != nil {
