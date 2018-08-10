@@ -26,7 +26,7 @@ func main() {
 
 		w.Header().Set("Content-Type", "text/plain")
 
-		rootCAs := x509.NewCertPool()
+		//rootCAs := x509.NewCertPool()
 
 		//pem, err := ioutil.ReadFile("/rds-combined-ca-bundle.pem")
 		//if err != nil {
