@@ -11,11 +11,14 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/gocraft/web"
 	"io/ioutil"
+	"log"
 )
 
 type Context struct{}
 
 func main() {
+
+	fmt.Println("MAIN ENTRY")
 
 	router := web.New(Context{})
 	router.Get("/", func(w web.ResponseWriter, req *web.Request) {
@@ -49,8 +52,9 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		log.Println("after ping")
 
-		// http://go-database-sql.org/retrieving.html
+		// http://go-database-sql.org/
 		rows, err := db.Query("select User from users")
 		if err != nil {
 			panic(err)
