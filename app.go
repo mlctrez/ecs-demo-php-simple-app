@@ -38,7 +38,7 @@ func main() {
 
 		mysql.RegisterTLSConfig("custom", &tls.Config{RootCAs: rootCAs})
 
-		con := fmt.Sprintf("%s:%s@%s/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
+		con := fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
 
 		db, err := sql.Open("mysql", con)
 		if err != nil {
