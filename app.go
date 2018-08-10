@@ -17,6 +17,47 @@ import (
 
 type Context struct{}
 
+var db *sql.DB
+
+func init() {
+	var err error
+	db, err = connect()
+	if err != nil {
+		db = nil
+		log.Println("unable to connect to db")
+	}
+	err = db.Ping()
+	if err != nil {
+		db = nil
+		log.Println("db ping error", err)
+	}
+}
+
+func connect() (*sql.DB, error) {
+	con := fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
+	return sql.Open("mysql", con)
+}
+
+func connectSsl() (*sql.DB, error) {
+	rootCAs := x509.NewCertPool()
+
+	pem, err := ioutil.ReadFile("rds-combined-ca-bundle.pem")
+	if err != nil {
+		panic(err)
+	}
+	if ok := rootCAs.AppendCertsFromPEM(pem); !ok {
+		panic("unable to append certs")
+	}
+
+	mysqlHost := os.Getenv("MYSQL_HOST")
+	mysql.RegisterTLSConfig("custom", &tls.Config{
+		RootCAs:    rootCAs,
+		ServerName: mysqlHost,
+	})
+	con := fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), mysqlHost)
+	return sql.Open("mysql", con)
+}
+
 func main() {
 
 	fmt.Println("MAIN ENTRY")
@@ -30,45 +71,18 @@ func main() {
 
 		w.Header().Set("Content-Type", "text/plain")
 
-		var con string
-
-		if false {
-			rootCAs := x509.NewCertPool()
-
-			pem, err := ioutil.ReadFile("/rds-combined-ca-bundle.pem")
-			if err != nil {
-				panic(err)
-			}
-			if ok := rootCAs.AppendCertsFromPEM(pem); !ok {
-				panic(err)
-			}
-
-			mysqlHost := os.Getenv("MYSQL_HOST")
-			config := &tls.Config{
-				RootCAs:    rootCAs,
-				ServerName: "",
-			}
-			mysql.RegisterTLSConfig("custom", config)
-			con = fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql?tls=custom", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), mysqlHost)
-		} else {
-			con = fmt.Sprintf("%s:%s@tcp(%s:3306)/mysql", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
+		if db==nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("no db"))
+			return
 		}
-
-		db, err := sql.Open("mysql", con)
-		if err != nil {
-			panic(err)
-		}
-
-		err = db.Ping()
-		if err != nil {
-			panic(err)
-		}
-		log.Println("after ping")
 
 		// http://go-database-sql.org/
 		rows, err := db.Query("select User from user")
 		if err != nil {
-			panic(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		defer rows.Close()
 
@@ -76,17 +90,19 @@ func main() {
 		for rows.Next() {
 			err := rows.Scan(&userName)
 			if err != nil {
-				panic(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
 			}
 			w.Write([]byte(userName))
 			w.Write([]byte("\n"))
 		}
 		err = rows.Err()
 		if err != nil {
-			panic(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
-
-		defer db.Close()
 
 	})
 	http.ListenAndServe(":80", router)
