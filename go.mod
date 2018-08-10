@@ -1,4 +1,4 @@
-module github.com/mlctrez/ecs-demo-php-simple-app
+module main
 
 require (
 	github.com/davecgh/go-spew v1.1.0 // indirect

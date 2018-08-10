@@ -7,7 +7,8 @@ COPY rds-combined-ca-bundle.pem /gobuild/rds-combined-ca-bundle.pem
 
 RUN apk add --no-cache git
 
-RUN cd /gobuild && CGO_ENABLED=0 GOOS=linux go build -o /app app.go
+WORKDIR /gobuild
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app app.go
 #RUN CGO_ENABLED=0 GOOS=linux go build -o /app /gobuild/app.go
 
 FROM scratch
