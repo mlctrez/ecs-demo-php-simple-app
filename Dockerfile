@@ -1,4 +1,4 @@
-FROM golang:1.11beta2-alpine3.8
+FROM golang:rc-alpine
 
 COPY app.go /gobuild/app.go
 COPY go.mod /gobuild/go.mod
