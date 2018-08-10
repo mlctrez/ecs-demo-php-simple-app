@@ -24,6 +24,8 @@ func main() {
 
 	router.Get("/mysql", func(w web.ResponseWriter, req *web.Request) {
 
+		w.Header().Set("Content-Type", "text/plain")
+
 		rootCAs := x509.NewCertPool()
 
 		pem, err := ioutil.ReadFile("/rds-combined-ca-bundle.pem")
@@ -44,6 +46,26 @@ func main() {
 		}
 
 		err = db.Ping()
+		if err != nil {
+			panic(err)
+		}
+
+		rows, err := db.Query("select User from users")
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+
+		var userName string
+		for rows.Next() {
+			err := rows.Scan(&userName)
+			if err != nil {
+				panic(err)
+			}
+			w.Write([]byte(userName))
+			w.Write([]byte("\n"))
+		}
+		err = rows.Err()
 		if err != nil {
 			panic(err)
 		}
