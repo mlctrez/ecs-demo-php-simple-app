@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"crypto/x509"
 	"github.com/gocraft/web"
 	"log"
 )
